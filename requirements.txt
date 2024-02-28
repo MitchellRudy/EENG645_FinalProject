@@ -1,0 +1,9 @@
+# make sure there were installed by the base
+numpy
+tensorflow
+
+scikit-learn
+pandas
+matplotlib
+h5py
+tqdm
