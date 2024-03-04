@@ -7,6 +7,8 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Dense, Conv1D, MaxPooling1D
 
+def load_reference_model():
+    return tf.keras.models.load_model(os.path.join("data","deepsig_io_radioml_2018_01a_dataset","model_full_SNR.h5"))
 
 # As point of comparison, use the CNN architecture designed in
 # Over the Air Deep Learning Based Radio Signal Classification
@@ -88,4 +90,6 @@ def main():
     return
 
 if __name__=='__main__':
-    main()
+    t = load_reference_model();
+    t.summary()
+    # main()

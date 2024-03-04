@@ -1,4 +1,5 @@
 import os
+from data_management import load_train_test_subset
 
 def build_subdirectories():
     cwd = os.getcwd()
@@ -25,4 +26,7 @@ def main():
     return
 
 if __name__ == '__main__':
-    main()
+    # main()
+    data_storage_dir = os.path.join(os.getcwd(),'data','project')
+    signals_train_full, labels_int_train_full, snrs_train_full, signals_test, labels_int_test, snrs_test = load_train_test_subset(data_storage_dir)
+    pass
