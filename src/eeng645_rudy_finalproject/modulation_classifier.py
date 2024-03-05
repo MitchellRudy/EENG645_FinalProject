@@ -7,7 +7,23 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Dense, Conv1D, MaxPooling1D
 
-def load_reference_model():
+from data_management import load_train_test_subset
+
+
+def my_model():
+    input_shape = (None,1024,2)
+    return
+    
+
+def load_expert_model():
+    """
+    load_expert_model():
+    
+    Description:
+    Loads pre-built model trained to achieve 95% accuracy
+    ref: https://www.kaggle.com/code/aleksandrdubrovin/resnet-model-for-radio-signals-classification/notebook#Save-Model-History
+
+    """
     return tf.keras.models.load_model(os.path.join("data","deepsig_io_radioml_2018_01a_dataset","model_full_SNR.h5"))
 
 # As point of comparison, use the CNN architecture designed in
@@ -89,7 +105,22 @@ def main():
 
     return
 
+def main2():
+    data_storage_dir = os.path.join(os.getcwd(),'data','project')
+    signals_train_full, labels_int_train_full, snrs_train_full, signals_test, labels_int_test, snrs_test = load_train_test_subset(data_storage_dir)
+    t = load_expert_model()
+    predvals = t.predict(signals_train_full[0:32,:,:])
+    preds = np.zeros(32)
+    for idx in range(0,32):
+        preds[idx] = np.argmax(predvals[idx,:])
+    true_labels = labels_int_train_full[0:32]
+    error = np.sum(abs(preds!=true_labels))
+    perc_error = error/32*100
+    print(f"Percent Error {perc_error}")
+    return
+
 if __name__=='__main__':
-    t = load_reference_model();
-    t.summary()
+    main2()
+    # t = load_reference_model();
+    # t.summary()
     # main()
