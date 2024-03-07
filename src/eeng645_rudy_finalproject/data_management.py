@@ -203,6 +203,60 @@ def get_class_label_dict():
     }
     return class_label_dict
 
+def get_class_labels_strs(class_labels):
+    class_label_dict = get_class_label_dict()
+    class_label_strs = [class_label_dict[x] for x in class_labels]
+    return class_label_strs
+
+def preprocess_to_normal_set(signals, labels_int, snrs):
+    """
+    preprocess_to_normal_set(signals, labels_int, snrs)
+    """
+    class_labels_keep = get_class_labels_normal()
+    signals, labels_int, snrs = trim_dataset_by_index(signals, labels_int, snrs, class_labels_keep)    
+    labels = to_categorical(labels_int)
+    labels = labels[:,class_labels_keep]
+    labels = np.reshape(labels, (len(labels),1,len(class_labels_keep)))
+    return
+
+def trim_dataset_by_index(signals, labels, snrs, class_labels_keep):
+    """
+    def trim_to_normal_set(signals, labels, snrs, list_class_numbers)
+    Take in a list of indices to keep from the dataset
+    By default, this function creates a mask on to keep the following modulation types:
+    Index | Mod. Type
+    3     | FM
+    4     | GMSK
+    6     | OQPSK
+    8     | BPSK
+    9     | 8PSK
+    11    | 4ASK
+    16    | AM-DSB-SC
+    17    | AM-SSB-SC
+    19    | QPSK
+    22    | OOK
+    23    | 16QAM
+
+    Inputs:
+    signals:nparray - array of signal IQ data from deepsig io dataset
+    labels:nparray - array of labels where each int corresponds to different modulation type (ref data_management.py)
+    snrs:nparray - array of signal-to-noise ratios for each signal (pre-trimmed to >=10)
+    """
+    # default actions
+    # class_labels_keep = [3,4,6,8,9,11,16,17,19,22,23]
+    mask = np.zeros(len(labels),dtype="bool")
+    for idx in class_labels_keep:
+        masked_array = np.ma.masked_where(labels == idx, labels)
+        mask |= masked_array.mask
+
+    signals = signals[mask]
+    labels = labels[mask]
+    snrs = snrs[mask]
+    return signals, labels, snrs
+
+def get_class_labels_normal():
+    return [3,4,6,8,9,11,16,17,19,22,23]
+
 # If running this file directly, just debug the process
 if __name__ == '__main__':
     data_storage_dir = os.path.join(os.getcwd(),'data','project')
