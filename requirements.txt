@@ -1,4 +1,5 @@
 # make sure there were installed by the base
+gymnasium
 numpy
 tensorflow
 
@@ -7,3 +8,22 @@ pandas
 matplotlib
 h5py
 tqdm
+
+numpy
+opencv-python-headless
+seaborn
+pytest
+tensorboard-plugin-customizable-plots
+tqdm
+plotly
+gif
+moviepy
+ffmpeg-python
+pettingzoo
+stable-baselines3
+rl_zoo3
+sb3-contrib
+sbx-rl
+tinyscaler
+supersuit
+autorom

@@ -31,7 +31,7 @@ from tensorflow.python.keras.callbacks import EarlyStopping, TensorBoard
 
 from data_management import load_train_test_subset, trim_dataset_by_index, get_class_labels_normal, get_class_labels_strs
 
-def build_my_mod_classifier(num_outputs=24, config=None):
+def build_mod_classifier(num_outputs=24, config=None):
     """
     build_my_mod_classifier()
     Builds my model to classify modulation types
@@ -110,7 +110,6 @@ def build_my_mod_classifier(num_outputs=24, config=None):
 
     # Step 7. Scaling up
     # At this point, the model morphs into a form nearly identical to the paper's model
-    # For classification, the abili
     model_layers = []
     model_layers.append(input_layer)
     for idx in range(0,num_conv1d_layers):
@@ -141,127 +140,7 @@ def build_my_mod_classifier(num_outputs=24, config=None):
     model.summary()
     return model
 
-def build_my_snr_estimator(config=None):
-    # Define parameters constant across all model iterations
-    input_shape = (1024,2)
-    loss_type = "mse"
-    model_metric=["mse"]
 
-    # Step 5. Build Initial Model
-    # input_layer = Input(shape=input_shape)
-    # max_pooling = MaxPooling1D(64, 1024)(input_layer)
-    # output_layer = Dense(1)(max_pooling)
-    # model = Model(inputs=input_layer, outputs=output_layer)
-    # model.compile(loss=loss_type, 
-    #     optimizer=Adam(),
-    #     metrics=model_metric)
-
-    # Step 6. Overfit the Training Data
-    # input_layer = Input(shape=input_shape)
-    # num_filters = 20
-    # kernel_size = 2
-    # input_layer = Input(shape=input_shape)
-    # num_conv1d_stacks = 1
-    # num_dense_layers = 4
-    # num_hidden_neurons = 2**8
-
-    # dilation_rates = 2 ** np.arange(9)
-    # dilation_rates = dilation_rates.tolist()
-    # model_layers = []
-    # model_layers.append(input_layer)
-    # for _ in range(0,num_conv1d_stacks):
-    #     for idx in range(0,len(dilation_rates)):
-    #         conv1d_layer = Conv1D(num_filters, kernel_size, padding="causal", activation="relu", dilation_rate=dilation_rates[idx])(model_layers[-1])
-    #         model_layers.append(conv1d_layer)
-
-    # # conv1d_layer_last = Conv1D(64,1024)(model_layers[-1])
-    # # model_layers.append(conv1d_layer_last)
-    # flatten_layer = Flatten()(model_layers[-1])
-    # model_layers.append(flatten_layer)
-
-    # # Adopt the "stretch pants" approach (book 425/1150)
-    # for _ in range(0,num_dense_layers):
-    #     dense_layer = Dense(num_hidden_neurons, activation="relu")(model_layers[-1])
-    #     model_layers.append(dense_layer)
-
-    # output_layer = Dense(1)(model_layers[-1])
-    # model = Model(inputs=input_layer, outputs=output_layer)
-    # model.compile(loss=loss_type, 
-    #     optimizer=Adam(),
-    #     metrics=model_metric)
-
-
-    # Step 7. Regularize the Model
-    input_layer = Input(shape=input_shape)
-    num_filters = 20
-    kernel_size = 2
-    input_layer = Input(shape=input_shape)
-    num_conv1d_stacks = 1
-    num_dense_layers = 5
-    num_hidden_neurons = 2**9
-    dropout_rate = 0.5
-
-    dilation_rates = 2 ** np.arange(9)
-    dilation_rates = dilation_rates.tolist()
-    model_layers = []
-    model_layers.append(input_layer)
-    for _ in range(0,num_conv1d_stacks):
-        for idx in range(0,len(dilation_rates)):
-            conv1d_layer = Conv1D(num_filters, kernel_size, padding="causal", activation="relu", dilation_rate=dilation_rates[idx])(model_layers[-1])
-            model_layers.append(conv1d_layer)
-            # batchnorm_layer = BatchNormalization()(model_layers[-1])
-            # model_layers.append(batchnorm_layer)
-
-    # conv1d_layer_last = Conv1D(64,1024)(model_layers[-1])
-    # model_layers.append(conv1d_layer_last)
-    flatten_layer = Flatten()(model_layers[-1])
-    model_layers.append(flatten_layer)
-
-    # Adopt the "stretch pants" approach (book 425/1150)
-    for _ in range(0,num_dense_layers):
-        dense_layer = Dense(num_hidden_neurons, activation="relu")(model_layers[-1])
-        model_layers.append(dense_layer)
-        dropout_layer = Dropout(dropout_rate)(model_layers[-1])
-        model_layers.append(dropout_layer)
-
-    output_layer = Dense(1)(model_layers[-1])
-    model = Model(inputs=input_layer, outputs=output_layer)
-    model.compile(loss=loss_type, 
-        optimizer=Adam(),
-        metrics=model_metric)
-
-    model.summary()
-    return model
-
-def load_expert_model():
-    """
-    load_expert_model():
-    
-    Description:
-    Loads pre-built model trained to achieve 95% accuracy
-    ref: https://www.kaggle.com/code/aleksandrdubrovin/resnet-model-for-radio-signals-classification/notebook#Save-Model-History
-
-    """
-    return tf.keras.models.load_model(os.path.join("data","deepsig_io_radioml_2018_01a_dataset","model_full_SNR.h5"))
-
-
-
-# def main():
-#     data_dir = os.path.join(os.getcwd(),"data","deepsig_io_radioml_2018_01a_dataset")
-#     signals_path = os.path.join(data_dir, "signals.npy")
-#     labels_path = os.path.join(data_dir, "labels.npy")
-#     # Signals Shape (2555904,1024,2)
-#     signals = np.load(signals_path)
-#     # Labels shape (2555904, 24)
-#     labels = np.load(labels_path)
-
-#     return
-
-def preprocess_labels(labels_int, class_labels_keep):
-    labels_oh = to_categorical(labels_int)
-    labels_oh = labels_oh[:,class_labels_keep]
-    # labels_oh = np.reshape(labels_oh, (len(labels_oh),1,len(class_labels_keep)))
-    return labels_oh
 
 def main3():
     # Random Seed
@@ -270,7 +149,7 @@ def main3():
     # 0.15 -> by a factor of 20
     DOWNSAMPLE_FACTOR = .999
     # 0.075 -> by a factor of 40
-    # DOWNSAMPLE_FACTOR = 0.075
+    # DOWNSAMPLE_FACTOR = 0.15
     # Train/Val split for models
     VAL_SPLIT = 0.25
     # Model training params
@@ -280,8 +159,8 @@ def main3():
     # FLAGS
     TRAIN_MOD_CLASS_MODEL = False
     TRAIN_SNR_TL_MODEL = False
-    TRAIN_SNR_MODEL = True
-    DO_FIGURES = False
+    TRAIN_SNR_MODEL = False
+    DO_FIGURES = True
 
     # Load in the data which was only trimmed by SNR to >=10
     data_storage_dir = os.path.join(os.getcwd(),'data','project')
@@ -444,44 +323,9 @@ def main3():
         plt.plot()
         plt.savefig("snrs vs preds (TL).png")
 
-    # Part 2 - SNR Estimator
-    model_checkpoint_loc = os.path.join(os.getcwd(),"models","model_snr_est_cp.h5")
-    if TRAIN_SNR_MODEL:
-        lr_scheduler_cb = ReduceLROnPlateau(factor = 0.75, patience = 10)
-        checkpoint_model_cb = ModelCheckpoint(model_checkpoint_loc,save_best_only=True)
-        early_stopping_cb = EarlyStopping(patience=10)
-        cbs = [lr_scheduler_cb, checkpoint_model_cb, early_stopping_cb]
-
-        model_snr = build_my_snr_estimator()
-        model_snr.fit(
-                    train_batches_pt2, 
-                    epochs=50, 
-                    validation_data=val_batches_pt2,
-                    callbacks=cbs
-                    )
-    else:
-        if os.path.exists(model_checkpoint_loc):
-            model_snr = load_model(model_checkpoint_loc)
-        else:
-            print(f"Couldn't find {model_checkpoint_loc}")
-
-    snr_preds = model_snr.predict(signals_val_pt2)
-    snr_preds = np.reshape(snr_preds, (snr_preds.shape[0],1))
-    sq_error = np.abs(snr_preds - snrs_val_pt2)**2
-    plt.figure()
-    plt.stem(snrs_val_pt2,sq_error)
-    plt.plot()
-    plt.savefig("snrs vs sq error.png")
-
-    plt.figure()
-    plt.stem(snrs_val_pt2,snr_preds)
-    plt.plot()
-    plt.savefig("snrs vs preds.png")
+    
     
     return
 
 if __name__=='__main__':
     main3()
-    # t = load_reference_model();
-    # t.summary()
-    # main()
