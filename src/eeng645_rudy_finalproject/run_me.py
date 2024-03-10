@@ -34,9 +34,7 @@ def main():
 
     DO_PART2 = True
     TRAIN_SNR_ESTIMATOR = False
-    TEST_SNR_ESTIMATOR = False
-
-    DO_PART3 = True
+    TEST_SNR_ESTIMATOR = True
 
     ###########################
     ##### Sim. Parameters #####
@@ -205,9 +203,10 @@ def main():
         cm_mod_class = confusion_matrix(y_pred=y_pred,y_true=y_true)
         plt.figure()
         cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_mod_class, display_labels=CLASS_LABELS_STR)
-        cm_disp.plot(cmap=plt.cm.Blues, xticks_rotation='vertical')
+        cm_disp.plot(cmap=plt.cm.Blues, xticks_rotation=45)
         cm_save_loc = os.path.join(os.getcwd(),'figures', cm_file_name)
-        plt.savefig(cm_save_loc)
+        plt.tight_layout()
+        plt.savefig(cm_save_loc, pad_inches=6)
         print(f"Part 1 confusion matrix saved to {cm_save_loc}")
 
 
@@ -235,19 +234,15 @@ def main():
             eval_data_pt2 = signals_test_pt2
             snr_true = snrs_test_pt2
             mod_labels = np.array([np.argmax(x) for x in labels_test_pt2])
-            pred_snr_file_name = "pred_snr_test.png"
-            sq_err_file_name = "square_error_test.png"
             test_val_str = "test"
         else:
             eval_data_pt2 = signals_val_pt2
             snr_true = snrs_val_pt2
             mod_labels = np.array([np.argmax(x) for x in labels_val_pt2])
-            pred_snr_file_name = "pred_snr_val.png"
-            sq_err_file_name = "square_error_val.png"
             test_val_str = "val"
 
         # Estimate SNRs
-        snr_preds = snr_estimator_model.predict(signals_val_pt2)
+        snr_preds = snr_estimator_model.predict(eval_data_pt2)
         snr_preds = np.reshape(snr_preds, (snr_preds.shape[0],1))
         sq_error = np.abs(snr_preds - snr_true)**2
 
@@ -314,7 +309,8 @@ def main():
             plt.ylabel("MSE ($dB^2$)")
             plt.show()
             fig_mse_v_true_savepath = os.path.join(savedir, f"snr_mse_{test_val_str}.png")
-            plt.savefig(fig_mse_v_true_savepath)
+            plt.tight_layout()
+            plt.savefig(fig_mse_v_true_savepath, pad_inches=6)
 
             # Predictions Vs True SNR
             plt.figure()
@@ -326,7 +322,8 @@ def main():
             plt.grid(visible=True)
             plt.show()
             fig_pred_v_true_savepath = os.path.join(savedir,f"snr_pred_{test_val_str}.png")
-            plt.savefig(fig_pred_v_true_savepath)
+            plt.tight_layout()
+            plt.savefig(fig_pred_v_true_savepath, pad_inches=6)
 
 
 
