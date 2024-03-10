@@ -78,6 +78,7 @@ def get_data2(class_labels_keep=[3,8,2], num_examples=100):
     signals_test_pt3_trimmed = np.array([])
     signals_test_pt3_trimmed = signals_test_pt3_trimmed.reshape((signals_train_pt3_trimmed.shape[0],1024,2))
     labels_test_pt3_trimmed = np.array([])
+
     for class_label in class_labels_keep:
         signals, labels, _ = trim_dataset_by_index(signals_train_pt3, labels_int_train_pt3, snrs_train_pt3, [class_label])
         indices = np.arange(len(labels))
@@ -163,9 +164,9 @@ def get_data2(class_labels_keep=[3,8,2], num_examples=100):
 
 # In this example, keep FM (3), BPSK (8)
 class_labels_keep = [3,8]
-class_labels_keep = get_class_labels_normal()
-# Use 50 examples of each
-num_examples = 10
+# class_labels_keep = get_class_labels_normal()
+# Use 10 examples of each
+num_examples = 20
 signals_train_pt3, labels_train_pt3, signals_test_pt3, labels_test_pt3 = get_data2(class_labels_keep, num_examples)
 num_classes = len(class_labels_keep)
 total_examples = num_examples*num_classes
@@ -185,8 +186,8 @@ select_env = "cloning-v0"
 register_env("cloning-v0", CloningEnv_v0)
 
 local_mode = False
-training_iterations = 150 # max iterations before stopping - recommended
-num_cpu = 5
+training_iterations = 20 # max iterations before stopping - recommended
+num_cpu = 3
 num_gpus = 0
 num_eval_workers = 1
 
@@ -201,7 +202,6 @@ env_config = {
     'num_classes': num_classes,
     'max_steps': signals_train_pt3.shape[0]-1
 }
-print(env_config)
 
 config = (  # 1. Configure the algorithm,
     PPOConfig() # put the actual config object for the algorithm you intend to use (Such as PPO or DQN)

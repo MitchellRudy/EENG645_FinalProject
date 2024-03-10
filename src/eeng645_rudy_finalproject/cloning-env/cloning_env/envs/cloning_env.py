@@ -24,7 +24,7 @@ class CloningEnv_v0(gymnasium.Env):
     MAX_STEPS = 100
 
     # Possible Rewards
-    REWARD_INCORRECT = -2
+    REWARD_INCORRECT = 0
     REWARD_CORRECT = 1
 
     # Optional metadata dictionary
@@ -79,10 +79,10 @@ class CloningEnv_v0(gymnasium.Env):
         observation = observation.reshape( (1, observation.shape[0], observation.shape[1]) )
         prediction = np.argmax(self.REF_MODEL.predict(observation))
         # custom conditionals for small example use (3 FM /8 BPSK)
-        # if prediction == 3:
-        #     prediction = 0
-        # if prediction == 8:
-        #     prediction = 1
+        if prediction == 3:
+            prediction = 0
+        if prediction == 8:
+            prediction = 1
         return prediction
 
     def step(self, action):

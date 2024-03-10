@@ -28,13 +28,13 @@ def main():
     #################
     GENERATE_DATASETS = False
 
-    DO_PART1 = True
+    DO_PART1 = False
     TRAIN_MODULATION_CLASSIFIER = False
-    TEST_MODULATION_CLASSIFIER = True
+    TEST_MODULATION_CLASSIFIER = False
 
     DO_PART2 = True
     TRAIN_SNR_ESTIMATOR = False
-    TEST_SNR_ESTIMATOR = True
+    TEST_SNR_ESTIMATOR = False
 
     ###########################
     ##### Sim. Parameters #####
@@ -190,16 +190,20 @@ def main():
         ### Evaluate Model
         # Select either TEST data or VALIDATION data
         if TEST_MODULATION_CLASSIFIER:
+            print("Testing Modulation Classifier")
             eval_data_pt1 = signals_test_pt1
             y_true = np.array([np.argmax(x) for x in labels_test_pt1])
             cm_file_name = "cm_mod_class_test.png"
         else:
+            print("Validating Modulation Classifier")
             eval_data_pt1 = signals_val_pt1
             y_true = np.array([np.argmax(x) for x in labels_val_pt1])
             cm_file_name = "cm_mod_class_val.png"
 
         # Make predictions and plot in confusion matrix
         y_pred = np.argmax(mod_class_model.predict(eval_data_pt1), axis=1)
+        pt1_accuracy = np.sum(y_pred == y_true)/len(y_true)
+        print(f"Modulation Classifier Accuracy: {pt1_accuracy:.2f}")
         cm_mod_class = confusion_matrix(y_pred=y_pred,y_true=y_true)
         plt.figure()
         cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_mod_class, display_labels=CLASS_LABELS_STR)
@@ -231,11 +235,13 @@ def main():
         snr_estimator_model = load_model(SNR_EST_CHECKPOINT_LOC)
         ### Evaluate Model
         if TEST_SNR_ESTIMATOR:
+            print("Testing SNR Estimator")
             eval_data_pt2 = signals_test_pt2
             snr_true = snrs_test_pt2
             mod_labels = np.array([np.argmax(x) for x in labels_test_pt2])
             test_val_str = "test"
         else:
+            print("Validating SNR Estimator")
             eval_data_pt2 = signals_val_pt2
             snr_true = snrs_val_pt2
             mod_labels = np.array([np.argmax(x) for x in labels_val_pt2])
@@ -300,6 +306,7 @@ def main():
 
                 plt.plot(snr_values, mse_mod_type, linestyle='--', marker='o', label=plot_str)
             
+            plt.axhline(y=0.05, color='r', linestyle='-', label="Baseline")
 
             # plt.plot(snr_values, mse_array, linestyle='--', marker='o', label=plot_str)
             plt.grid(visible=True)
