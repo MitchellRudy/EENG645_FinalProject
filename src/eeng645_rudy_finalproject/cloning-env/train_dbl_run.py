@@ -18,7 +18,6 @@ from data_management import load_train_test_subset, trim_dataset_by_index, get_c
 ############################
 
 def get_data2(class_labels_keep=[3,8,2], num_examples=100):
-    np.random.seed(1)
     # Snippet from "run_me.py" for part 3 data
     # "main" root of all data packages used in project
     data_storage_dir = os.path.join(os.getcwd(),'data','project')
@@ -67,10 +66,10 @@ def get_data2(class_labels_keep=[3,8,2], num_examples=100):
     return signals_train_pt3_trimmed, labels_train_pt3_trimmed, signals_test_pt3_trimmed, labels_test_pt3_trimmed
 
 def main():
-    # In this example, keep FM (3), BPSK (8)
+    # In this example, keep FM (3), BPSK (8), OOK (22)
     class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
-    # Use 10 examples of each
+    # Use set number of examples of each
     num_examples = 1000
     signals_train_pt3, labels_train_pt3, signals_test_pt3, labels_test_pt3 = get_data2(class_labels_keep, num_examples)
     num_classes = len(class_labels_keep)
@@ -92,7 +91,7 @@ def main():
 
     local_mode = False
     training_iterations = 30 # max iterations before stopping
-    num_cpu = 3
+    num_cpu = 6
     num_gpus = 0
     num_eval_workers = 1
 

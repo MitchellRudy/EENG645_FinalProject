@@ -34,7 +34,7 @@ def main():
 
     DO_PART2 = True
     TRAIN_SNR_ESTIMATOR = False
-    TEST_SNR_ESTIMATOR = False
+    TEST_SNR_ESTIMATOR = True
 
     ###########################
     ##### Sim. Parameters #####
@@ -140,9 +140,11 @@ def main():
     indices_train_pt2, indices_val_pt2, labels_train_pt2, labels_val_pt2 = train_test_split(indices, labels_train_pt2, random_state=SEED, test_size=VALIDATION_SPLIT)
     
     signals_val_pt2 = signals_train_pt2[indices_val_pt2,:,:]
+    # labels_val_pt2 = labels_train_pt2[indices_val_pt2,:]
     snrs_val_pt2 = snrs_train_pt2[indices_val_pt2]
 
     signals_train_pt2 = signals_train_pt2[indices_train_pt2,:,:]
+    # labels_train_pt2 = labels_train_pt2[indices_train_pt2,:]
     snrs_train_pt2 = snrs_train_pt2[indices_train_pt2]
 
     # Part 3 - Reinforcement Learning
@@ -223,7 +225,7 @@ def main():
             lr_scheduler_cb = ReduceLROnPlateau(factor = 0.75, patience = 10)
             checkpoint_model_cb = ModelCheckpoint(SNR_EST_CHECKPOINT_LOC,save_best_only=True)
             early_stopping_cb = EarlyStopping(patience=50)
-            cbs = [lr_scheduler_cb, checkpoint_model_cb, early_stopping_cb]
+            cbs = [checkpoint_model_cb, early_stopping_cb]
 
             snr_estimator_model = build_snr_estimator()
             snr_est_fit_history = snr_estimator_model.fit(

@@ -24,7 +24,7 @@ class CloningEnv_v0(gymnasium.Env):
     MAX_STEPS = 100
 
     # Possible Rewards
-    REWARD_INCORRECT = 0
+    REWARD_INCORRECT = -2
     REWARD_CORRECT = 1
 
     # Optional metadata dictionary

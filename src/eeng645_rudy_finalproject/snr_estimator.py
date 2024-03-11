@@ -60,7 +60,7 @@ def build_snr_estimator(config=None):
     input_layer = Input(shape=input_shape)
     num_conv1d_stacks = 1
     num_dense_layers = 4
-    num_hidden_neurons = 2**7
+    num_hidden_neurons = 2**8
     dropout_rate = 0.25
 
     dilation_rates = 2 ** np.arange(8)
@@ -78,8 +78,11 @@ def build_snr_estimator(config=None):
 
     conv1d_layer_last = Conv1D(num_filters*4,2,strides=2)(model_layers[-1])
     model_layers.append(conv1d_layer_last)
+    
+    conv1d_layer_last = Conv1D(num_filters*8,2,strides=2)(model_layers[-1])
+    model_layers.append(conv1d_layer_last)
 
-    maxpooling_layer = MaxPooling1D(pool_size=256,strides=None,padding='valid')(model_layers[-1])
+    maxpooling_layer = MaxPooling1D(pool_size=128,strides=None,padding='valid')(model_layers[-1])
     model_layers.append(maxpooling_layer)
 
     # conv1d_layer_last = Conv1D(num_filters,2,strides=2)(model_layers[-1])
