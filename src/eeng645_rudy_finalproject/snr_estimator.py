@@ -73,15 +73,15 @@ def build_snr_estimator(config=None):
             model_layers.append(conv1d_layer)
 
     # downscale number of parameters
-    # maxpooling_layer = MaxPooling1D()(model_layers[-1])
-    # model_layers.append(maxpooling_layer)
     conv1d_layer_last = Conv1D(num_filters*2,2,strides=2)(model_layers[-1])
     model_layers.append(conv1d_layer_last)
+
     conv1d_layer_last = Conv1D(num_filters*4,2,strides=2)(model_layers[-1])
     model_layers.append(conv1d_layer_last)
-    conv1d_layer_last = Conv1D(num_filters*8,2,strides=2)(model_layers[-1])
+
     maxpooling_layer = MaxPooling1D(pool_size=256,strides=None,padding='valid')(model_layers[-1])
     model_layers.append(maxpooling_layer)
+
     # conv1d_layer_last = Conv1D(num_filters,2,strides=2)(model_layers[-1])
     # model_layers.append(conv1d_layer_last)
     flatten_layer = Flatten()(model_layers[-1])
@@ -102,39 +102,3 @@ def build_snr_estimator(config=None):
 
     model.summary()
     return model
-
-
-# # Part 2 - SNR Estimator
-#     model_checkpoint_loc = os.path.join(os.getcwd(),"models","model_snr_est_cp.h5")
-#     if TRAIN_SNR_MODEL:
-#         lr_scheduler_cb = ReduceLROnPlateau(factor = 0.75, patience = 10)
-#         checkpoint_model_cb = ModelCheckpoint(model_checkpoint_loc,save_best_only=True)
-#         early_stopping_cb = EarlyStopping(patience=10)
-#         cbs = [lr_scheduler_cb, checkpoint_model_cb, early_stopping_cb]
-
-#         model_snr = build_snr_estimator()
-#         model_snr.fit(
-#                     train_batches_pt2, 
-#                     epochs=75, 
-#                     validation_data=val_batches_pt2,
-#                     callbacks=cbs
-#                     )
-#     else:
-#         if os.path.exists(model_checkpoint_loc):
-#             loc = os.path.join(os.getcwd(),"models","model_snr_est_cp_val_mse_0626.h5")
-#             model_snr = load_model(loc)
-#         else:
-#             print(f"Couldn't find {model_checkpoint_loc}")
-
-#     snr_preds = model_snr.predict(signals_val_pt2)
-#     snr_preds = np.reshape(snr_preds, (snr_preds.shape[0],1))
-#     sq_error = np.abs(snr_preds - snrs_val_pt2)**2
-#     plt.figure()
-#     plt.stem(snrs_val_pt2,sq_error)
-#     plt.plot()
-#     plt.savefig("snrs vs sq error.png")
-
-#     plt.figure()
-#     plt.stem(snrs_val_pt2,snr_preds)
-#     plt.plot()
-#     plt.savefig("snrs vs preds.png")

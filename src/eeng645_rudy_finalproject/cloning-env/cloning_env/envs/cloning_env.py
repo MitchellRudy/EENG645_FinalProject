@@ -60,14 +60,11 @@ class CloningEnv_v0(gymnasium.Env):
         self.done = False
         self.info = {
             "correct": 0,
-            "FM correct": 0,
-            "BPSK correct": 0,
-            "incorrect": 0,
-            "FM incorrect": 0,
-            "BPSK incorrect": 0,
             "incorrect": 0,
             "accuracy": 0.0,
-        }
+            "expert_preds": [],
+            "agent_preds": [],
+        }        
         return self.get_observation(), self.info
 
     def get_observation(self):
@@ -77,12 +74,7 @@ class CloningEnv_v0(gymnasium.Env):
     def get_expert_prediction(self):
         observation = self.get_observation()
         observation = observation.reshape( (1, observation.shape[0], observation.shape[1]) )
-        prediction = np.argmax(self.REF_MODEL.predict(observation))
-        # custom conditionals for small example use (3 FM /8 BPSK)
-        if prediction == 3:
-            prediction = 0
-        if prediction == 8:
-            prediction = 1
+        prediction = np.argmax(self.REF_MODEL.predict(observation, verbose=0))
         return prediction
 
     def step(self, action):
@@ -93,6 +85,7 @@ class CloningEnv_v0(gymnasium.Env):
         # At the end of an episode
         elif self.count == self.MAX_STEPS:
             self.done = True
+            print(f"Count: {self.count}; Accuracy: {self.info['accuracy']:.2f}; Correct: {self.info['correct']}; Incorrect: {self.info['incorrect']}")
         # Most steps should hit here
         else:
             assert self.action_space.contains(action)
@@ -101,6 +94,8 @@ class CloningEnv_v0(gymnasium.Env):
             # Logic for determining reward
             # Get expert's prediction
             expert_prediction = self.get_expert_prediction()
+            self.info['expert_preds'].append(expert_prediction)
+            self.info['agent_preds'].append(action)
             # Reward depends on if agent correctly predicted the expert's prediction
             if action == expert_prediction:
                 self.reward = self.REWARD_CORRECT
@@ -113,7 +108,6 @@ class CloningEnv_v0(gymnasium.Env):
             self.state = 0
         
         observation = self.get_observation()
-        print(f"Count: {self.count}; Accuracy: {self.info['accuracy']:.2f}; Correct: {self.info['correct']}; Incorrect: {self.info['incorrect']}")
             
 
         return observation, self.reward, self.done, False, self.info
