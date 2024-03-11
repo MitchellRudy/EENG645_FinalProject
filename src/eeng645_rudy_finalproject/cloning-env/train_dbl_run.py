@@ -66,11 +66,11 @@ def get_data2(class_labels_keep=[3,8,2], num_examples=100):
     return signals_train_pt3_trimmed, labels_train_pt3_trimmed, signals_test_pt3_trimmed, labels_test_pt3_trimmed
 
 def main():
-    # In this example, keep FM (3), BPSK (8), OOK (22)
+    # In this example, keep FM (3), BPSK (8)
     class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
     # Use set number of examples of each
-    num_examples = 1000
+    num_examples = 2000
     signals_train_pt3, labels_train_pt3, signals_test_pt3, labels_test_pt3 = get_data2(class_labels_keep, num_examples)
     num_classes = len(class_labels_keep)
     num_classes_max = len(get_class_labels_normal())
@@ -90,8 +90,8 @@ def main():
     register_env("cloning-v0", CloningEnv_v0)
 
     local_mode = False
-    training_iterations = 30 # max iterations before stopping
-    num_cpu = 6
+    training_iterations = 50 # max iterations before stopping
+    num_cpu = 10
     num_gpus = 0
     num_eval_workers = 1
 
@@ -123,7 +123,7 @@ def main():
             # REF: https://docs.ray.io/en/master/rllib/rllib-algorithms.html#ppo
             lr=0.0001, # learning rate
             gamma=0.95, # "Discount factor of Markov Decision process"
-            kl_coeff=0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
+            #kl_coeff=0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
             # train_batch_size=128,
             )
         .evaluation(evaluation_num_workers=num_eval_workers, evaluation_interval=10)

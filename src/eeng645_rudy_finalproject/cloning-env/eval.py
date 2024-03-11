@@ -168,15 +168,19 @@ def evaluate(checkpoint, rf_data = None, num_classes=None, evaluation_duration =
 if __name__== '__main__':
     
     # In this example, keep FM (3), BPSK (8)
-    class_labels_keep = [3,8,22]
+    class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
     # Use 10 examples of each
-    num_examples = 100
+    num_examples = 500
     signals_train_pt3, labels_train_pt3, signals_test_pt3, labels_test_pt3 = get_data2(class_labels_keep, num_examples)
     num_classes = len(get_class_labels_normal())
     total_examples = num_examples*num_classes
 
-    checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_eba65_00000_0_2024-03-11_05-19-22/checkpoint_000000'
+    # [3, 8]
+    # 2000 examples
+    # 50 training iterations
+
+    checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_97f2f_00000_0_2024-03-11_12-26-32/checkpoint_000000'
     evaluation_duration = 1
     evaluation_num_workers = 3
     evaluate(checkpoint=checkpoint, evaluation_duration=evaluation_duration, evaluation_num_workers=evaluation_num_workers, rf_data=signals_test_pt3, num_classes=num_classes)
