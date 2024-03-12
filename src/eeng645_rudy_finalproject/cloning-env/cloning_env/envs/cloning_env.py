@@ -16,7 +16,6 @@ import numpy as np
 # Tensorflow/Keras imports
 import os
 import tensorflow as tf
-from tensorflow.keras.models import load_model
 tf.compat.v1.enable_eager_execution()
 
 class CloningEnv_v0(gymnasium.Env):
@@ -32,13 +31,11 @@ class CloningEnv_v0(gymnasium.Env):
         "render.modes": ["human"]
     }
 
-    # Reference model to help train agent via predictions
-    REF_MODEL = load_model(os.path.join(os.getcwd(),"models","model_mod_class_cp.h5"))
-
     def __init__(self, env_config):
-        # rf_data and validation labels
+        # rf_data
         self.rf_data = env_config['rf_data']
-        self.labels = env_config['labels']
+        # Get expert predictions during initialization
+        self.expert_predictions = env_config['expert_preds']
         # Define action space where each possible action is a classificaiton type
         self.action_space = gymnasium.spaces.Discrete(env_config['num_classes'])
         # Observation space is the model's estimated classification
@@ -46,7 +43,7 @@ class CloningEnv_v0(gymnasium.Env):
             -np.inf, np.inf,self.rf_data[0].shape, dtype=np.float32
             )
         if env_config['max_steps'] is not None:
-            self.MAX_STEPS = env_config['max_steps']
+            self.MAX_STEPS = env_config['max_steps']-1
 
     def reset(self, *, seed=None, options=None):
         """
@@ -72,9 +69,7 @@ class CloningEnv_v0(gymnasium.Env):
         return observation
 
     def get_expert_prediction(self):
-        observation = self.get_observation()
-        observation = observation.reshape( (1, observation.shape[0], observation.shape[1]) )
-        prediction = np.argmax(self.REF_MODEL.predict(observation, verbose=0))
+        prediction = self.expert_predictions[self.count]
         return prediction
 
     def step(self, action):

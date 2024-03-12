@@ -11,6 +11,7 @@ import shutil
 import os
 import numpy as np
 from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import load_model
 from data_management import load_train_test_subset, trim_dataset_by_index, get_class_labels_normal, get_class_labels_strs
 
 ############################
@@ -71,12 +72,16 @@ def main():
     class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
     # Use 10 examples of each
-    num_examples = 1000
+    num_examples = 2000
     signals_train_pt3, labels_train_pt3, signals_test_pt3, labels_test_pt3 = get_data2(class_labels_keep, num_examples)
     num_classes = len(class_labels_keep)
     num_classes_max = len(get_class_labels_normal())
     total_examples = num_examples*num_classes
 
+
+    # Reference model to help train agent via predictions
+    REF_MODEL = load_model(os.path.join(os.getcwd(),"models","model_mod_class_cp.h5"))
+    expert_predictions = np.argmax(REF_MODEL.predict(signals_train_pt3, verbose=0), axis=1)
 
 
     chkpt_root = "chkpoint/"
@@ -87,12 +92,12 @@ def main():
 
     ray.init(ignore_reinit_error=True)
 
-    select_env = "cloning-v0"
-    register_env("cloning-v0", CloningEnv_v0)
+    environment_string = "cloning-v0"
+    register_env(environment_string, CloningEnv_v0)
 
     local_mode = False
-    training_iterations = 30 # max iterations before stopping
-    num_cpu = 3
+    training_iterations = 100 # max iterations before stopping
+    num_cpu = 20
     num_gpus = 0
     num_eval_workers = 1
 
@@ -103,14 +108,15 @@ def main():
     env_config = {
         'render_mode': 'human',
         'rf_data': signals_train_pt3,
-        'labels': None,
+        'expert_preds': expert_predictions,
         'num_classes': num_classes_max, # Use the 11 classes to define action space to avoid needing custom logic
-        'max_steps': signals_train_pt3.shape[0]-1
+        'max_steps': signals_train_pt3.shape[0]
     }
+
 
     config = (  # 1. Configure the algorithm,
         PPOConfig() # put the actual config object for the algorithm you intend to use (Such as PPO or DQN)
-        .environment("cloning-v0", env_config=env_config)
+        .environment(environment_string, env_config=env_config)
         .experimental(_enable_new_api_stack=False)
         .rollouts(
             num_rollout_workers=num_rollout_workers,
@@ -122,9 +128,9 @@ def main():
         .training(
             # Put hyperparams here as needed. Look in the AlgorithmConfig object and child object for available params
             # REF: https://docs.ray.io/en/master/rllib/rllib-algorithms.html#ppo
-            lr=0.0001, # learning rate
-            gamma=0.95, # "Discount factor of Markov Decision process"
-            kl_coeff=0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
+            lr=0.001, # learning rate
+            gamma=0.99, # "Discount factor of Markov Decision process"
+            kl_coeff=0.0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
             # train_batch_size=128,
             )
         .evaluation(evaluation_num_workers=num_eval_workers, evaluation_interval=10)
@@ -145,7 +151,7 @@ def main():
                 checkpoint_at_end=True,
                 checkpoint_score_attribute='episode_reward_mean',
                 checkpoint_score_order='max',
-                checkpoint_frequency=100,
+                checkpoint_frequency=25,
                 num_to_keep=5
                 ),
         ),

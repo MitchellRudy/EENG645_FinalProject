@@ -86,12 +86,12 @@ def main():
 
     ray.init(ignore_reinit_error=True)
 
-    select_env = "cloning-v0"
-    register_env("cloning-v0", CloningEnv_v0)
+    env_name = "cloning-v0"
+    register_env(env_name, CloningEnv_v0)
 
     local_mode = False
-    training_iterations = 50 # max iterations before stopping
-    num_cpu = 10
+    training_iterations = 200 # max iterations before stopping
+    num_cpu = 20
     num_gpus = 0
     num_eval_workers = 1
 
@@ -102,14 +102,13 @@ def main():
     env_config = {
         'render_mode': 'human',
         'rf_data': signals_train_pt3,
-        'labels': None,
         'num_classes': num_classes_max, # Use the 11 classes to define action space to avoid needing custom logic
         'max_steps': signals_train_pt3.shape[0]-1
     }
 
     config = (  # 1. Configure the algorithm,
         PPOConfig() # put the actual config object for the algorithm you intend to use (Such as PPO or DQN)
-        .environment("cloning-v0", env_config=env_config)
+        .environment(env_name, env_config=env_config)
         .experimental(_enable_new_api_stack=False)
         .rollouts(
             num_rollout_workers=num_rollout_workers,

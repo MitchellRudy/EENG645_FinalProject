@@ -15,6 +15,8 @@ seaborn
 pytest
 tensorboard-plugin-customizable-plots
 tqdm
+ray[all]==2.9.2
+optuna
 plotly
 gif
 moviepy

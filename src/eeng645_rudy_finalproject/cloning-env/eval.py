@@ -22,6 +22,8 @@ from ray.rllib.utils.framework import try_import_tf
 tf1, tf, tfv = try_import_tf()
 tf.compat.v1.enable_eager_execution()
 
+PYTHONWARNINGS="ignore::DeprecationWarning"
+
 
 def get_data2(class_labels_keep=[3,8,2], num_examples=100):
     np.random.seed(1)
@@ -120,8 +122,8 @@ def evaluate(checkpoint, rf_data = None, num_classes=None, evaluation_duration =
     config_update = {
         'env_config': env_config,
         'evaluation_config': {
-            'evaluation_interval': 1,
-            'evaluation_duration_unit': 'episodes',
+            'evaluation_interval': rf_data.shape[0],
+            'evaluation_duration_unit': 'timesteps',
             'evaluation_duration': evaluation_duration,
             'evaluation_num_workers': evaluation_num_workers,
         },
@@ -171,7 +173,7 @@ if __name__== '__main__':
     class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
     # Use 10 examples of each
-    num_examples = 500
+    num_examples = 50
     signals_train_pt3, labels_train_pt3, signals_test_pt3, labels_test_pt3 = get_data2(class_labels_keep, num_examples)
     num_classes = len(get_class_labels_normal())
     total_examples = num_examples*num_classes
@@ -179,8 +181,9 @@ if __name__== '__main__':
     # [3, 8]
     # 2000 examples
     # 50 training iterations
-
     checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_97f2f_00000_0_2024-03-11_12-26-32/checkpoint_000000'
+
+    # checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_4a14f_00000_0_2024-03-11_06-55-04/checkpoint_000000'
     evaluation_duration = 1
-    evaluation_num_workers = 3
+    evaluation_num_workers = 10
     evaluate(checkpoint=checkpoint, evaluation_duration=evaluation_duration, evaluation_num_workers=evaluation_num_workers, rf_data=signals_test_pt3, num_classes=num_classes)

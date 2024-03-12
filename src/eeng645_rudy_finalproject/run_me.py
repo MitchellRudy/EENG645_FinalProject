@@ -27,12 +27,13 @@ def main():
     ##### Flags #####
     #################
     GENERATE_DATASETS = False
+    GEN_VAL_AND_TEST_SUBPLOTS = False
 
-    DO_PART1 = False
+    DO_PART1 = True
     TRAIN_MODULATION_CLASSIFIER = False
     TEST_MODULATION_CLASSIFIER = False
 
-    DO_PART2 = True
+    DO_PART2 = False
     TRAIN_SNR_ESTIMATOR = False
     TEST_SNR_ESTIMATOR = True
 
@@ -190,6 +191,15 @@ def main():
                 )
         mod_class_model = load_model(MOD_CLASS_CHECKPOINT_LOC)
         ### Evaluate Model
+        def plot_confusion_matrix(y_pred, y_true, class_labels=None, ax=None):
+            cm_mod_class = confusion_matrix(y_pred=y_pred,y_true=y_true)
+            cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_mod_class, display_labels=class_labels)
+            cm_disp.plot(cmap=plt.cm.Blues, xticks_rotation=45, ax=ax, colorbar=False)
+            plt.tight_layout()
+            plt.xlabel("Predicted Mod. Scheme", fontsize=12)
+            plt.ylabel("True Mod. Scheme", fontsize=12)
+            return
+            
         # Select either TEST data or VALIDATION data
         if TEST_MODULATION_CLASSIFIER:
             print("Testing Modulation Classifier")
@@ -206,14 +216,12 @@ def main():
         y_pred = np.argmax(mod_class_model.predict(eval_data_pt1), axis=1)
         pt1_accuracy = np.sum(y_pred == y_true)/len(y_true)
         print(f"Modulation Classifier Accuracy: {pt1_accuracy:.2f}")
-        cm_mod_class = confusion_matrix(y_pred=y_pred,y_true=y_true)
         plt.figure()
-        cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_mod_class, display_labels=CLASS_LABELS_STR)
-        cm_disp.plot(cmap=plt.cm.Blues, xticks_rotation=45)
+        plot_confusion_matrix(y_pred, y_true, class_labels=CLASS_LABELS_STR)
         cm_save_loc = os.path.join(os.getcwd(),'figures', cm_file_name)
-        plt.tight_layout()
         plt.savefig(cm_save_loc, pad_inches=6)
         print(f"Part 1 confusion matrix saved to {cm_save_loc}")
+
 
 
     ##################################
