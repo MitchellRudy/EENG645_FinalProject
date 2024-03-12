@@ -27,9 +27,9 @@ def main():
     ##### Flags #####
     #################
     GENERATE_DATASETS = False
-    GEN_VAL_AND_TEST_SUBPLOTS = False
+    GEN_VAL_AND_TEST_SUBPLOTS = True
 
-    DO_PART1 = False
+    DO_PART1 = True
     TRAIN_MODULATION_CLASSIFIER = False
     TEST_MODULATION_CLASSIFIER = False
 
@@ -243,34 +243,40 @@ def main():
                 callbacks=cbs
             )
         snr_estimator_model = load_model(SNR_EST_CHECKPOINT_LOC)
-        ### Evaluate Model
-        if TEST_SNR_ESTIMATOR:
-            print("Testing SNR Estimator")
-            eval_data_pt2 = signals_test_pt2
-            snr_true = snrs_test_pt2
-            mod_labels = np.array([np.argmax(x) for x in labels_test_pt2])
-            test_val_str = "test"
-        else:
-            print("Validating SNR Estimator")
-            eval_data_pt2 = signals_val_pt2
-            snr_true = snrs_val_pt2
-            mod_labels = np.array([np.argmax(x) for x in labels_val_pt2])
-            test_val_str = "val"
+        ### Evaluate Model# Plot SNR estimation Errors
+        def plot_snr_preds(snr_true, snr_preds, snr_values, ax=None):
+            """
+            plot_snr_preds(snr_true, snr_preds, snr_values):
 
-        # Estimate SNRs
-        snr_preds = snr_estimator_model.predict(eval_data_pt2)
-        snr_preds = np.reshape(snr_preds, (snr_preds.shape[0],1))
-        sq_error = np.abs(snr_preds - snr_true)**2
+            snr_true - true snr "labels"
+            snr_preds - values predicted by model
+            snr_values - values to use as tick marks
+            """
+            if ax is None:
+                plt.scatter(snr_true, snr_preds)
+                plt.xticks(snr_values)
+                plt.yticks(snr_values)
+                plt.xlabel("True SNR (dB)", fontsize=12)
+                plt.ylabel("Predicted SNR (dB)", fontsize=12)
+                plt.grid(visible=True)
+                plt.show()
+            else:
+                ax.scatter(snr_true, snr_preds)
+                ax.set_xticks(snr_values)
+                ax.set_yticks(snr_values)
+                ax.set_xlabel("True SNR (dB)", fontsize=12)
+                ax.set_ylabel("Predicted SNR (dB)", fontsize=12)
+                ax.grid(visible=True)
+            return
 
-        # Plot SNR estimation Errors
         def plot_snr_estimation_errors(
             snr_true, 
             snr_preds, 
+            snr_values, 
             mod_labels,
             CLASS_LABELS_KEEP,
             CLASS_LABELS_STR,
-            savedir, 
-            test_val_str
+            ax=None
             ):
             """
             plot_snr_estimation_errors(snr_true, snr_preds, mod_labels, savedir, test_val_str):
@@ -283,11 +289,10 @@ def main():
             snr_true:nparray -
             snr_preds:nparray - 
             mod_labels:nparray -
-            savedir:str
-            test_val_str:
+            CLASS_LABELS_KEEP: -
+            CLASS_LABELS_STR: -
+            ax: figure axis
             """
-            # FIRST, need to get unique levels of SNR values
-            snr_values, _ = np.unique(snr_true, return_counts=True)
             num_unique_snrs = len(snr_values)
 
             # calculate errors
@@ -295,7 +300,6 @@ def main():
 
             # Iteratively plot the mse's for each modulation type
             mse_array = np.zeros((num_unique_snrs, len(CLASS_LABELS_KEEP)))
-            plt.figure()
             for idx in range(0,len(CLASS_LABELS_KEEP)):
                 mod_class = CLASS_LABELS_KEEP[idx]
                 plot_str = CLASS_LABELS_STR[idx]
@@ -313,50 +317,142 @@ def main():
 
                     snr_errors_subset = snr_errors[mask_use]
                     mse_mod_type[idy] = np.mean(snr_errors_subset**2)
-
-                plt.plot(snr_values, mse_mod_type, linestyle='--', marker='o', label=plot_str)
+                if ax is None:
+                    plt.plot(snr_values, mse_mod_type, linestyle='--', marker='o', label=plot_str)
+                else:
+                    ax.plot(snr_values, mse_mod_type, linestyle='--', marker='o', label=plot_str)
             
-            plt.axhline(y=0.05, color='r', linestyle='-', label="Baseline")
+            if ax is None:
+                plt.axhline(y=0.05, color='r', linestyle='-', label="Baseline")
 
-            # plt.plot(snr_values, mse_array, linestyle='--', marker='o', label=plot_str)
-            plt.grid(visible=True)
-            plt.legend()
-            plt.xticks(snr_values)
-            plt.xlabel("True SNR (dB)", fontsize=12)
-            plt.ylabel("MSE ($dB^2$)", fontsize=12)
-            plt.show()
-            fig_mse_v_true_savepath = os.path.join(savedir, f"snr_mse_{test_val_str}.png")
+                # plt.plot(snr_values, mse_array, linestyle='--', marker='o', label=plot_str)
+                plt.grid(visible=True)
+                plt.legend()
+                plt.xticks(snr_values)
+                plt.xlabel("True SNR (dB)", fontsize=12)
+                plt.ylabel("MSE ($dB^2$)", fontsize=12)
+                plt.show()
+            else:
+                ax.axhline(y=0.05, color='r', linestyle='-', label="Baseline")
+                ax.grid(visible=True)
+                ax.legend()
+                ax.set_xticks(snr_values)
+                ax.set_xlabel("True SNR (dB)", fontsize=12)
+                ax.set_ylabel("MSE ($dB^2$)", fontsize=12)
+
+            return
+        
+        if not GEN_VAL_AND_TEST_SUBPLOTS:
+            if TEST_SNR_ESTIMATOR:
+                print("Testing SNR Estimator")
+                eval_data_pt2 = signals_test_pt2
+                snr_true = snrs_test_pt2
+                mod_labels = np.array([np.argmax(x) for x in labels_test_pt2])
+                test_val_str = "test"
+            else:
+                print("Validating SNR Estimator")
+                eval_data_pt2 = signals_val_pt2
+                snr_true = snrs_val_pt2
+                mod_labels = np.array([np.argmax(x) for x in labels_val_pt2])
+                test_val_str = "val"
+
+            # Estimate SNRs
+            snr_preds = snr_estimator_model.predict(eval_data_pt2)
+            snr_preds = np.reshape(snr_preds, (snr_preds.shape[0],1))
+            sq_error = np.abs(snr_preds - snr_true)**2       
+
+            
+            # need to get unique levels of SNR values
+            snr_values, _ = np.unique(snr_true, return_counts=True)
+            
+            plt.figure()
+            plot_snr_estimation_errors(
+                snr_true, 
+                snr_preds,
+                snr_values,
+                mod_labels,
+                CLASS_LABELS_KEEP,
+                CLASS_LABELS_STR,
+                )
             plt.tight_layout()
+            fig_mse_v_true_savepath = os.path.join(os.getcwd(),'figures', f"snr_mse_{test_val_str}.png")
             plt.savefig(fig_mse_v_true_savepath, pad_inches=6)
+            print(f"Saved Part 2 MSE plot to {fig_mse_v_true_savepath}")
 
             # Predictions Vs True SNR
             plt.figure()
-            plt.scatter(snr_true, snr_preds)
-            plt.xticks(snr_values)
-            plt.yticks(snr_values)
-            plt.xlabel("True SNR (dB)", fontsize=12)
-            plt.ylabel("Predicted SNR (dB)", fontsize=12)
-            plt.grid(visible=True)
-            plt.show()
-            fig_pred_v_true_savepath = os.path.join(savedir,f"snr_pred_{test_val_str}.png")
+            plot_snr_preds(snr_true, snr_preds, snr_values)
+            fig_pred_v_true_savepath = os.path.join(os.getcwd(),'figures', f"snr_pred_{test_val_str}.png")
             ax = plt.gca()
             ax.set_aspect('equal', adjustable='box')
-            # plt.tight_layout()
             plt.savefig(fig_pred_v_true_savepath, pad_inches=6)
+            print(f"Saved Part 2 SNR Prediction plot to {fig_pred_v_true_savepath}")
+        else:
+            # Get predictions for both val and test sets
+            snr_preds_val = snr_estimator_model.predict(signals_val_pt2)
+            snr_preds_val = np.reshape(snr_preds_val, (snr_preds_val.shape[0],1))
+            snr_preds_test = snr_estimator_model.predict(signals_test_pt2)
+            snr_preds_test = np.reshape(snr_preds_test, (snr_preds_test.shape[0],1))
 
+            # get true values for both val and test sets
+            snr_true_val = snrs_val_pt2
+            snr_true_test = snrs_test_pt2
 
+            # get square errors
+            sq_error_val = np.abs(snr_preds_val - snr_true_val)**2
+            sq_error_test = np.abs(snr_preds_test - snr_true_test)**2
 
-            return
+            # get modulation labels for val and test
+            mod_labels_val = np.array([np.argmax(x) for x in labels_val_pt2])
+            mod_labels_test = np.array([np.argmax(x) for x in labels_test_pt2])
 
-        plot_snr_estimation_errors(
-            snr_true, 
-            snr_preds, 
-            mod_labels,
-            CLASS_LABELS_KEEP,
-            CLASS_LABELS_STR,
-            os.path.join(os.getcwd(),'figures'), 
-            test_val_str
-            )
+            # need to get unique levels of SNR values
+            snr_values, _ = np.unique(snr_true_val, return_counts=True)
+
+            # Generate subplots for MSE fig
+            fig_mse, (ax1_mse, ax2_mse) = plt.subplots(2,1, figsize=(10,10))
+            plot_snr_estimation_errors(
+                snr_true_val, 
+                snr_preds_val,
+                snr_values,
+                mod_labels_val,
+                CLASS_LABELS_KEEP,
+                CLASS_LABELS_STR,
+                ax = ax1_mse
+                )
+            ax1_mse.title.set_text("a)")
+            plot_snr_estimation_errors(
+                snr_true_test, 
+                snr_preds_test,
+                snr_values,
+                mod_labels_test,
+                CLASS_LABELS_KEEP,
+                CLASS_LABELS_STR,
+                ax = ax2_mse
+                )
+            ax2_mse.title.set_text("b)")
+
+            plt.show()
+            fig_mse_v_true_savepath = os.path.join(os.getcwd(),'figures', f"snr_mse_val_test.png")
+            plt.savefig(fig_mse_v_true_savepath, pad_inches=6)
+            print(f"Saved Part 2 MSE plot to {fig_mse_v_true_savepath}")
+
+            # generate subplots for Prediction fig
+            fig_pred, (ax1_pred, ax2_pred) = plt.subplots(2,1, figsize=(10,10))
+
+            plot_snr_preds(snr_true_val, snr_preds_val, snr_values, ax1_pred)
+            ax1_pred.title.set_text("a)")
+            ax1_pred.set_aspect('equal', adjustable='box')
+            
+            plot_snr_preds(snr_true_test, snr_preds_test, snr_values, ax2_pred)
+            ax2_pred.title.set_text("b)")
+            ax2_pred.set_aspect('equal', adjustable='box')
+
+            fig_pred_v_true_savepath = os.path.join(os.getcwd(),'figures', f"snr_pred_val_test.png")
+
+            plt.savefig(fig_pred_v_true_savepath, pad_inches=6)
+            print(f"Saved Part 2 SNR Prediction plot to {fig_pred_v_true_savepath}")
+
     ###########################################
     ##### Part 3 - Reinforcement Learning #####
     ###########################################
