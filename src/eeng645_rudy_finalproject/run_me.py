@@ -29,13 +29,13 @@ def main():
     GENERATE_DATASETS = False
     GEN_VAL_AND_TEST_SUBPLOTS = False
 
-    DO_PART1 = True
+    DO_PART1 = False
     TRAIN_MODULATION_CLASSIFIER = False
     TEST_MODULATION_CLASSIFIER = False
 
-    DO_PART2 = False
+    DO_PART2 = True
     TRAIN_SNR_ESTIMATOR = False
-    TEST_SNR_ESTIMATOR = True
+    TEST_SNR_ESTIMATOR = False
 
     ###########################
     ##### Sim. Parameters #####
@@ -322,8 +322,8 @@ def main():
             plt.grid(visible=True)
             plt.legend()
             plt.xticks(snr_values)
-            plt.xlabel("True SNR (dB)")
-            plt.ylabel("MSE ($dB^2$)")
+            plt.xlabel("True SNR (dB)", fontsize=12)
+            plt.ylabel("MSE ($dB^2$)", fontsize=12)
             plt.show()
             fig_mse_v_true_savepath = os.path.join(savedir, f"snr_mse_{test_val_str}.png")
             plt.tight_layout()
@@ -334,12 +334,14 @@ def main():
             plt.scatter(snr_true, snr_preds)
             plt.xticks(snr_values)
             plt.yticks(snr_values)
-            plt.xlabel("True SNR (dB)")
-            plt.ylabel("Predicted SNR (dB)")
+            plt.xlabel("True SNR (dB)", fontsize=12)
+            plt.ylabel("Predicted SNR (dB)", fontsize=12)
             plt.grid(visible=True)
             plt.show()
             fig_pred_v_true_savepath = os.path.join(savedir,f"snr_pred_{test_val_str}.png")
-            plt.tight_layout()
+            ax = plt.gca()
+            ax.set_aspect('equal', adjustable='box')
+            # plt.tight_layout()
             plt.savefig(fig_pred_v_true_savepath, pad_inches=6)
 
 
