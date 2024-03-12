@@ -96,7 +96,7 @@ def main():
     register_env(environment_string, CloningEnv_v0)
 
     local_mode = False
-    training_iterations = 100 # max iterations before stopping
+    training_iterations = 200 # max iterations before stopping
     num_cpu = 20
     num_gpus = 0
     num_eval_workers = 1
@@ -129,9 +129,9 @@ def main():
             # Put hyperparams here as needed. Look in the AlgorithmConfig object and child object for available params
             # REF: https://docs.ray.io/en/master/rllib/rllib-algorithms.html#ppo
             lr=0.001, # learning rate
-            gamma=0.99, # "Discount factor of Markov Decision process"
+            gamma=0.95, # "Discount factor of Markov Decision process"
             kl_coeff=0.0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
-            # train_batch_size=128,
+            train_batch_size=128,
             )
         .evaluation(evaluation_num_workers=num_eval_workers, evaluation_interval=10)
         # .callbacks(callbacks)

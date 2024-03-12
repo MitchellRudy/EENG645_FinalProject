@@ -16,6 +16,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.model_selection import train_test_split
 from data_management import load_train_test_subset, trim_dataset_by_index, get_class_labels_normal, get_class_labels_strs
 from custom_callbacks import GetPredictionsCallback
+from tensorflow.keras.models import load_model
 
 # Fix tensorflow bug when using tf2 framework with Algorithm.from_checkpoint()
 from ray.rllib.utils.framework import try_import_tf
@@ -99,7 +100,7 @@ def eval_duration_fn_args(eval_duration, tic):
 
 
 
-def evaluate(checkpoint, rf_data = None, num_classes=None, evaluation_duration = 20, evaluation_num_workers = 5):
+def evaluate(checkpoint, env_config, evaluation_duration = 20, evaluation_num_workers = 5):
 
     """Runs a model evaluation from checkpoint for a duration with num workers and saves replays to folder"""
 
@@ -110,22 +111,15 @@ def evaluate(checkpoint, rf_data = None, num_classes=None, evaluation_duration =
     old_config = old_alg.get_config()
     config = old_config.copy(copy_frozen=False) # make an unfrozen copy
 
-    env_config = {
-        'render_mode': 'human',
-        'rf_data': rf_data,
-        'labels': None,
-        'num_classes': num_classes,
-        'max_steps': rf_data.shape[0]-1
-    }
-
     # Update config for evaluation only run
     config_update = {
         'env_config': env_config,
         'evaluation_config': {
-            'evaluation_interval': rf_data.shape[0],
+            'evaluation_interval': 1,
             'evaluation_duration_unit': 'timesteps',
-            'evaluation_duration': evaluation_duration,
+            'evaluation_duration': env_config['max_steps'],
             'evaluation_num_workers': evaluation_num_workers,
+            'evaluation_sample_timeout_s': 600,
         },
         'num_rollout_workers': 0,
         'callbacks': GetPredictionsCallback
@@ -173,17 +167,35 @@ if __name__== '__main__':
     class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
     # Use 10 examples of each
-    num_examples = 50
-    signals_train_pt3, labels_train_pt3, signals_test_pt3, labels_test_pt3 = get_data2(class_labels_keep, num_examples)
+    num_examples = 100
+    _, _, signals_test_pt3, _ = get_data2(class_labels_keep, num_examples)
     num_classes = len(get_class_labels_normal())
     total_examples = num_examples*num_classes
+    rf_data = signals_test_pt3
+
+
+    # Reference model to help train agent via predictions
+    REF_MODEL = load_model(os.path.join(os.getcwd(),"models","model_mod_class_cp.h5"))
+    expert_predictions = np.argmax(REF_MODEL.predict(rf_data, verbose=0), axis=1)
+
+
+    
+
+    env_config = {
+        'render_mode': 'human',
+        'rf_data': rf_data,
+        'expert_preds': expert_predictions,
+        'num_classes': num_classes,
+        'max_steps': rf_data.shape[0]-1
+    }
 
     # [3, 8]
     # 2000 examples
     # 50 training iterations
-    checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_97f2f_00000_0_2024-03-11_12-26-32/checkpoint_000000'
+    # checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_97f2f_00000_0_2024-03-11_12-26-32/checkpoint_000000'
 
     # checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_4a14f_00000_0_2024-03-11_06-55-04/checkpoint_000000'
+    checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_76c97_00000_0_2024-03-12_16-27-48/checkpoint_000003'
     evaluation_duration = 1
-    evaluation_num_workers = 10
-    evaluate(checkpoint=checkpoint, evaluation_duration=evaluation_duration, evaluation_num_workers=evaluation_num_workers, rf_data=signals_test_pt3, num_classes=num_classes)
+    evaluation_num_workers = 1
+    evaluate(checkpoint=checkpoint, evaluation_duration=evaluation_duration, evaluation_num_workers=evaluation_num_workers, env_config=env_config)

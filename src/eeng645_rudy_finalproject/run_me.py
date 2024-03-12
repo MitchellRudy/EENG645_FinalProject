@@ -29,7 +29,7 @@ def main():
     GENERATE_DATASETS = False
     GEN_VAL_AND_TEST_SUBPLOTS = True
 
-    DO_PART1 = True
+    DO_PART1 = False
     TRAIN_MODULATION_CLASSIFIER = False
     TEST_MODULATION_CLASSIFIER = False
 
@@ -256,16 +256,16 @@ def main():
                 plt.scatter(snr_true, snr_preds)
                 plt.xticks(snr_values)
                 plt.yticks(snr_values)
-                plt.xlabel("True SNR (dB)", fontsize=12)
-                plt.ylabel("Predicted SNR (dB)", fontsize=12)
+                plt.xlabel("True SNR (dB)", fontsize=18)
+                plt.ylabel("Predicted SNR (dB)", fontsize=18)
                 plt.grid(visible=True)
                 plt.show()
             else:
                 ax.scatter(snr_true, snr_preds)
                 ax.set_xticks(snr_values)
                 ax.set_yticks(snr_values)
-                ax.set_xlabel("True SNR (dB)", fontsize=12)
-                ax.set_ylabel("Predicted SNR (dB)", fontsize=12)
+                ax.set_xlabel("True SNR (dB)", fontsize=18)
+                ax.set_ylabel("Predicted SNR (dB)", fontsize=18)
                 ax.grid(visible=True)
             return
 
@@ -329,16 +329,16 @@ def main():
                 plt.grid(visible=True)
                 plt.legend()
                 plt.xticks(snr_values)
-                plt.xlabel("True SNR (dB)", fontsize=12)
-                plt.ylabel("MSE ($dB^2$)", fontsize=12)
+                plt.xlabel("True SNR (dB)", fontsize=18)
+                plt.ylabel("MSE ($dB^2$)", fontsize=18)
                 plt.show()
             else:
                 ax.axhline(y=0.05, color='r', linestyle='-', label="Baseline")
                 ax.grid(visible=True)
                 ax.legend()
                 ax.set_xticks(snr_values)
-                ax.set_xlabel("True SNR (dB)", fontsize=12)
-                ax.set_ylabel("MSE ($dB^2$)", fontsize=12)
+                ax.set_xlabel("True SNR (dB)", fontsize=18)
+                ax.set_ylabel("MSE ($dB^2$)", fontsize=18)
 
             return
         
@@ -420,7 +420,8 @@ def main():
                 CLASS_LABELS_STR,
                 ax = ax1_mse
                 )
-            ax1_mse.title.set_text("a)")
+            ax1_mse.set_title("a)", size=18)
+            ax1_mse.tick_params(axis='both', which='major', labelsize=14)
             plot_snr_estimation_errors(
                 snr_true_test, 
                 snr_preds_test,
@@ -430,8 +431,9 @@ def main():
                 CLASS_LABELS_STR,
                 ax = ax2_mse
                 )
-            ax2_mse.title.set_text("b)")
-
+            ax2_mse.set_title("b)", size=18)
+            ax2_mse.tick_params(axis='both', which='major', labelsize=14)
+            fig_mse.tight_layout()
             plt.show()
             fig_mse_v_true_savepath = os.path.join(os.getcwd(),'figures', f"snr_mse_val_test.png")
             plt.savefig(fig_mse_v_true_savepath, pad_inches=6)
@@ -441,13 +443,17 @@ def main():
             fig_pred, (ax1_pred, ax2_pred) = plt.subplots(2,1, figsize=(10,10))
 
             plot_snr_preds(snr_true_val, snr_preds_val, snr_values, ax1_pred)
-            ax1_pred.title.set_text("a)")
+            ax1_pred.set_title("a)", size=18)
+            ax1_pred.tick_params(axis='both', which='major', labelsize=14)
             ax1_pred.set_aspect('equal', adjustable='box')
             
             plot_snr_preds(snr_true_test, snr_preds_test, snr_values, ax2_pred)
-            ax2_pred.title.set_text("b)")
+            ax2_pred.set_title("b)", size=18)
+            ax2_pred.tick_params(axis='both', which='major', labelsize=14)
             ax2_pred.set_aspect('equal', adjustable='box')
 
+            fig_pred.tight_layout()
+            plt.show()
             fig_pred_v_true_savepath = os.path.join(os.getcwd(),'figures', f"snr_pred_val_test.png")
 
             plt.savefig(fig_pred_v_true_savepath, pad_inches=6)

@@ -44,7 +44,7 @@ def save_train_test_subset(
     ##############################
     ##### Dataset Label Info #####
     ##############################
-
+    [3,4,6,8,9,11,16,17,19,22,23]
     # By default, the labels are ONE-HOT ENCODED for the following classes
     # Index: Modulation Type
     # 0 :'32PSK', (32 Phase-Shift Keying)
