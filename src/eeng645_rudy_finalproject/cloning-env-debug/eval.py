@@ -192,7 +192,7 @@ if __name__== '__main__':
     # [3, 8]
     # 2000 examples
     # 50 training iterations
-    checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_4a14f_00000_0_2024-03-11_06-55-04/checkpoint_000000'
+    checkpoint = '/remote_home/EENG645_FinalProject/best_models/PPO_cloning-v0_4a14f_00000_0_2024-03-11_06-55-04/checkpoint_000000'
     evaluation_duration = 1
     evaluation_num_workers = 1
     evaluate(checkpoint=checkpoint, evaluation_duration=evaluation_duration, evaluation_num_workers=evaluation_num_workers, env_config=env_config)
