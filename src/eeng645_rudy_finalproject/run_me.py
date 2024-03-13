@@ -462,7 +462,8 @@ def main():
     ###########################################
     ##### Part 3 - Reinforcement Learning #####
     ###########################################
-    # See "cloning-env" directory
+    # See "cloning-env-debug" directory for code generating results presented in class
+    # "cloning-env" directory is being used to attempt improvements
     return
 
 if __name__ == '__main__':

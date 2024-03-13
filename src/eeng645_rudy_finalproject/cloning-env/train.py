@@ -96,7 +96,7 @@ def main():
     register_env(environment_string, CloningEnv_v0)
 
     local_mode = False
-    training_iterations = 200 # max iterations before stopping
+    training_iterations = 1000 # max iterations before stopping
     num_cpu = 20
     num_gpus = 0
     num_eval_workers = 1
@@ -120,7 +120,7 @@ def main():
         .experimental(_enable_new_api_stack=False)
         .rollouts(
             num_rollout_workers=num_rollout_workers,
-            batch_mode='truncate_episodes',
+            batch_mode='complete_episodes',
             enable_connectors=False
             )
         .resources(num_gpus=num_gpus)
@@ -128,7 +128,8 @@ def main():
         .training(
             # Put hyperparams here as needed. Look in the AlgorithmConfig object and child object for available params
             # REF: https://docs.ray.io/en/master/rllib/rllib-algorithms.html#ppo
-            lr=0.001, # learning rate
+            model={"fcnet_hiddens":[256, 256, 256, 256],},
+            lr=0.0001, # learning rate
             gamma=0.95, # "Discount factor of Markov Decision process"
             kl_coeff=0.0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
             train_batch_size=128,
