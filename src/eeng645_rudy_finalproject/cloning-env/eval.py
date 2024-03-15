@@ -209,7 +209,7 @@ if __name__== '__main__':
         'rf_data': rf_data,
         'expert_preds': expert_predictions,
         'num_classes': num_classes,
-        'max_steps': rf_data.shape[0]-1
+        'max_steps': rf_data.shape[0]
     }
 
     # [3, 8]
