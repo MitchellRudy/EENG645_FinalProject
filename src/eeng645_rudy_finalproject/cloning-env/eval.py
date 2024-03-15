@@ -26,8 +26,10 @@ tf.compat.v1.enable_eager_execution()
 PYTHONWARNINGS="ignore::DeprecationWarning"
 
 
-def get_data2(class_labels_keep=[3,8,2], num_examples=100):
-    np.random.seed(1)
+def get_data2(class_labels_keep=[3,8,2], num_examples=100, test_agent=False):
+    SEED = 1
+    np.random.seed(SEED)
+    VALIDATION_SPLIT = 0.25
     # Snippet from "run_me.py" for part 3 data
     # "main" root of all data packages used in project
     data_storage_dir = os.path.join(os.getcwd(),'data','project')
@@ -38,13 +40,32 @@ def get_data2(class_labels_keep=[3,8,2], num_examples=100):
         signals_train_pt3, labels_int_train_pt3, snrs_train_pt3, signals_test_pt3, labels_int_test_pt3, snrs_test_pt3 = load_train_test_subset(pt3_storage_dir)
     except:
         print(f"Error loading in data for part 3 from {pt3_storage_dir}")
+
+    
+    indices = np.arange(len(snrs_train_pt3))
+    indices_train_pt3, indices_val_pt3, labels_int_train_pt3, labels_int_val_pt3 = train_test_split(indices, labels_int_train_pt3, random_state=SEED, test_size=VALIDATION_SPLIT)
+    signals_val_pt3 = signals_train_pt3[indices_val_pt3,:,:]
+    signals_train_pt3 = signals_train_pt3[indices_train_pt3,:,:]
+
+    snrs_val_pt3 = snrs_train_pt3[indices_val_pt3]
+    snrs_train_pt3 = snrs_train_pt3[indices_train_pt3]
+
+    if test_agent:
+        signals_eval_pt3 = signals_test_pt3
+        labels_int_eval_pt3 = labels_int_test_pt3
+        snrs_eval_pt3 = snrs_test_pt3
+    else:
+        signals_eval_pt3 = signals_val_pt3
+        labels_int_eval_pt3 = labels_int_val_pt3
+        snrs_eval_pt3 = snrs_val_pt3
     
     signals_train_pt3_trimmed = np.array([])
     signals_train_pt3_trimmed = signals_train_pt3_trimmed.reshape((signals_train_pt3_trimmed.shape[0],1024,2))
     labels_train_pt3_trimmed = np.array([])
-    signals_test_pt3_trimmed = np.array([])
-    signals_test_pt3_trimmed = signals_test_pt3_trimmed.reshape((signals_train_pt3_trimmed.shape[0],1024,2))
-    labels_test_pt3_trimmed = np.array([])
+
+    signals_eval_pt3_trimmed = np.array([])
+    signals_eval_pt3_trimmed = signals_eval_pt3_trimmed.reshape((signals_eval_pt3_trimmed.shape[0],1024,2))
+    labels_eval_pt3_trimmed = np.array([])
 
     for class_label in class_labels_keep:
         signals, labels, _ = trim_dataset_by_index(signals_train_pt3, labels_int_train_pt3, snrs_train_pt3, [class_label])
@@ -54,12 +75,12 @@ def get_data2(class_labels_keep=[3,8,2], num_examples=100):
         signals_train_pt3_trimmed = np.concatenate((signals_train_pt3_trimmed,signals[indices]),axis=0)
         labels_train_pt3_trimmed = np.concatenate((labels_train_pt3_trimmed,labels[indices]),axis=0)
         
-        signals, labels, _ = trim_dataset_by_index(signals_test_pt3, labels_int_test_pt3, snrs_test_pt3, [class_label])
+        signals, labels, _ = trim_dataset_by_index(signals_eval_pt3, labels_int_eval_pt3, snrs_eval_pt3, [class_label])
         indices = np.arange(len(labels))
         np.random.shuffle(indices)
         indices = indices[0:num_examples]
-        signals_test_pt3_trimmed = np.concatenate((signals_test_pt3_trimmed,signals[indices]),axis=0)
-        labels_test_pt3_trimmed = np.concatenate((labels_test_pt3_trimmed,labels[indices]),axis=0)
+        signals_eval_pt3_trimmed = np.concatenate((signals_eval_pt3_trimmed,signals[indices]),axis=0)
+        labels_eval_pt3_trimmed = np.concatenate((labels_eval_pt3_trimmed,labels[indices]),axis=0)
 
     indices = np.arange(len(labels_train_pt3_trimmed))
     np.random.shuffle(indices)
@@ -67,13 +88,13 @@ def get_data2(class_labels_keep=[3,8,2], num_examples=100):
     signals_train_pt3_trimmed = signals_train_pt3_trimmed[indices,:,:]
     labels_train_pt3_trimmed = labels_train_pt3_trimmed[indices]
 
-    indices = np.arange(len(labels_test_pt3_trimmed))
+    indices = np.arange(len(labels_eval_pt3_trimmed))
     np.random.shuffle(indices)
 
-    signals_test_pt3_trimmed = signals_test_pt3_trimmed[indices,:,:]
-    labels_test_pt3_trimmed = labels_test_pt3_trimmed[indices]
+    signals_eval_pt3_trimmed = signals_eval_pt3_trimmed[indices,:,:]
+    labels_eval_pt3_trimmed = labels_eval_pt3_trimmed[indices]
 
-    return signals_train_pt3_trimmed, labels_train_pt3_trimmed, signals_test_pt3_trimmed, labels_test_pt3_trimmed
+    return signals_train_pt3_trimmed, labels_train_pt3_trimmed, signals_eval_pt3_trimmed, labels_eval_pt3_trimmed
 
 def progressBar(count_value, total, suffix=''):
     """Makes a progress bar in the terminal according to count_value out of total steps"""
@@ -119,8 +140,9 @@ def evaluate(checkpoint, env_config, evaluation_duration = 20, evaluation_num_wo
             'evaluation_duration_unit': 'timesteps',
             'evaluation_duration': env_config['max_steps'],
             'evaluation_num_workers': evaluation_num_workers,
-            'evaluation_sample_timeout_s': 600,
+            'evaluation_sample_timeout_s': 6000,
         },
+        'evaluation_sample_timeout_s': 6000,
         'num_rollout_workers': 0,
         'callbacks': GetPredictionsCallback
         # 'explore': False, # NOTE: DO NOT turn explore off with policy algs like PPO
@@ -167,8 +189,9 @@ if __name__== '__main__':
     class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
     # Use 10 examples of each
-    num_examples = 100
-    _, _, signals_test_pt3, _ = get_data2(class_labels_keep, num_examples)
+    num_examples = 1000
+    test_agent = True
+    _, _, signals_test_pt3, _ = get_data2(class_labels_keep, num_examples,test_agent)
     num_classes = len(get_class_labels_normal())
     total_examples = num_examples*num_classes
     rf_data = signals_test_pt3
@@ -195,7 +218,27 @@ if __name__== '__main__':
     # checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_97f2f_00000_0_2024-03-11_12-26-32/checkpoint_000000'
 
     # checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_4a14f_00000_0_2024-03-11_06-55-04/checkpoint_000000'
-    checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_76c97_00000_0_2024-03-12_16-27-48/checkpoint_000003'
+    # checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_76c97_00000_0_2024-03-12_16-27-48/checkpoint_000003'
+    
+    # Training params
+    # num_examples = 2000
+    # model={"fcnet_hiddens":[256, 256, 256, 256],},
+    # lr=0.0001, # learning rate
+    # gamma=0.95, # "Discount factor of Markov Decision process"
+    # kl_coeff=0.0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
+    # train_batch_size=128,
+    # checkpoint @ 25 training iters
+    # checkpoint = '/remote_home/EENG645_FinalProject/ray_results/FinalProject_Copycat/PPO_cloning-v0_48cd7_00000_0_2024-03-13_04-08-01/checkpoint_000000'
+
+
+    # model={"fcnet_hiddens":[512, 512, 512, 512],},
+    # lr=0.0001, # learning rate
+    # gamma=0.95, # "Discount factor of Markov Decision process"
+    # kl_coeff=0.0, # Initial coefficient for Kullback-Leibler divergence, penalizes new policies for beeing too different from previous policy
+    # train_batch_size=128,
+    # checkpoint @ 30 training iters
+    # Shuffled data every episode start
+    checkpoint = '/remote_home/EENG645_FinalProject/best_models/PPO_cloning-v0_09756_00000_0_2024-03-14_22-27-26'
     evaluation_duration = 1
     evaluation_num_workers = 1
     evaluate(checkpoint=checkpoint, evaluation_duration=evaluation_duration, evaluation_num_workers=evaluation_num_workers, env_config=env_config)

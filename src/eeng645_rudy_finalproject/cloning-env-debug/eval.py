@@ -167,7 +167,7 @@ if __name__== '__main__':
     # In this example, keep FM (3), BPSK (8)
     class_labels_keep = [3,8]
     # class_labels_keep = get_class_labels_normal()
-    # Use 10 examples of each
+    # Expect this to take up to 10 minutes...adjust dictionary in evaluate if going above 1k examples each
     num_examples = 500
     _, _, signals_test_pt3, _ = get_data2(class_labels_keep, num_examples)
     num_classes = len(get_class_labels_normal())
@@ -189,9 +189,7 @@ if __name__== '__main__':
         'max_steps': rf_data.shape[0]-1
     }
 
-    # [3, 8]
-    # 2000 examples
-    # 50 training iterations
+
     checkpoint = '/remote_home/EENG645_FinalProject/best_models/PPO_cloning-v0_4a14f_00000_0_2024-03-11_06-55-04/checkpoint_000000'
     evaluation_duration = 1
     evaluation_num_workers = 1

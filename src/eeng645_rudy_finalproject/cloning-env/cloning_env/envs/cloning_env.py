@@ -51,6 +51,10 @@ class CloningEnv_v0(gymnasium.Env):
         """
         # super().reset from FlappyBirdEnv
         super().reset(seed=seed)
+        index_shuffle = np.arange(len(self.expert_predictions))
+        np.random.shuffle(index_shuffle)
+        self.expert_predictions = self.expert_predictions[index_shuffle]
+        self.rf_data = self.rf_data[index_shuffle,:,:]
         self.count = 0
         # self.state = None
         self.reward = 0
